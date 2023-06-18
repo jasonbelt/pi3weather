@@ -1,0 +1,124 @@
+<html>
+  <body>
+
+    <input type="date" id="startDate" name="trip-start"
+           value="2023-06-20"
+           min="2023-06-04" max="2023-06-23">
+
+    <input type="date" id="endDate" name="trip-start"
+           value="2023-06-20"
+           min="2023-06-04" max="2023-06-23">
+
+    <select id="reading" name="reading">
+      <option value="h" selected>Humidity</option>
+      <option value="f">Fahrenheit</option>
+      <option value="c">Celcius</option>
+    </select>
+    
+    <div>
+      <canvas id="myChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      var xmlhttp = new XMLHttpRequest();
+
+      var min = 0
+      var max = 0
+
+      var fulldata = null;
+      var chart = null;
+      
+      function format(s) { return s.substring(5, 10) + ' ' +  s.substring(11, 16) }
+
+      function subHours(d, h) { return new Date(d).setHours(d.getHours() - h) }
+
+      function displayData(start, end) {
+          var minV = 10000
+          var maxV = 0
+
+          var reading = document.getElementById('reading')
+          var key = reading.value
+          var label = reading.options[reading.selectedIndex].text;
+
+          const data = fulldata.filter(f => f.d >= start && f.d <= end )
+          data.forEach(f => {
+              if (f[key] < minV) minV = f[key]
+              if (f[key] > maxV) maxV = f[key]
+          })
+          
+          const dates = data.map(d => d.ds);
+          const humidities = data.map(d => d[key]);
+          
+          const ctx = document.getElementById('myChart').getContext('2d');
+          if (chart != null) {
+              chart.destroy();
+          }
+          chart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                  labels: dates,
+                  datasets: [{
+                      label: label,
+                      data: humidities,
+                      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                      borderColor: 'rgba(75, 192, 192, 1)',
+                      borderWidth: 1
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  scales: {
+                      y: {
+                          min: minV - 1,
+                          max: maxV + 1
+                      }
+                  }
+              }
+          });
+      }
+
+      function redraw() {
+          var sd = new Date(document.getElementById('startDate').value + "T00:00:00.000");
+          var ed = new Date(document.getElementById('endDate').value + "T23:59:59.00");
+          displayData(sd, ed);
+      }
+      
+      document.getElementById('reading').addEventListener ("change", redraw);
+      document.getElementById('startDate').addEventListener ("change", redraw);
+      document.getElementById('endDate').addEventListener ("change", redraw);
+      
+      xmlhttp.onreadystatechange = function() {
+          if(xmlhttp.status==200 && xmlhttp.readyState==4) {
+              var d = xmlhttp.responseText
+              
+              data = JSON.parse('[' + d + ']');
+              fulldata = data.map(dd => {
+                  return {
+                      // parse date and add a pretty-printed version
+                      d : new Date(dd.d), ds : format(dd.d),
+                      f : dd.f, c : dd.c, h : dd.h }
+              })
+              
+              const sd = document.getElementById('startDate');
+              const ed = document.getElementById('endDate');
+              
+              min = fulldata[0].d
+              max = fulldata.slice(-1)[0].d
+
+              ed.value = max.toISOString().split('T')[0];
+              ed.min = min.toISOString().split('T')[0];
+              ed.max = max.toISOString().split('T')[0];
+              
+              sd.value = max.toISOString().split('T')[0];
+              sd.min = min.toISOString().split('T')[0];
+              sd.max = max.toISOString().split('T')[0];
+
+              displayData(subHours(max, 24), max);
+          }
+      }
+      xmlhttp.open("GET","weather.json",true);
+      xmlhttp.send();
+    </script>
+  </body>
+</html>
