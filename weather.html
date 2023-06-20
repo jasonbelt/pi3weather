@@ -1,11 +1,11 @@
 <html>
   <body>
 
-    <input type="date" id="startDate" name="trip-start"
+    <input type="date" id="startDate" name="date-start"
            value="2023-06-20"
            min="2023-06-04" max="2023-06-23">
 
-    <input type="date" id="endDate" name="trip-start"
+    <input type="date" id="endDate" name="date-end"
            value="2023-06-20"
            min="2023-06-04" max="2023-06-23">
 
@@ -20,47 +20,71 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+
     <script>
       var xmlhttp = new XMLHttpRequest();
-
-      var min = 0
-      var max = 0
 
       var fulldata = null;
       var chart = null;
       
       function format(s) { return s.substring(5, 10) + ' ' +  s.substring(11, 16) }
 
-      function subHours(d, h) { return new Date(d).setHours(d.getHours() - h) }
+      function displayData(startDate, endDate) {
 
-      function displayData(start, end) {
-          var minV = 10000
-          var maxV = 0
+          const fdata = fulldata.filter(f => f.d >= startDate && f.d <= endDate );
 
-          var reading = document.getElementById('reading')
-          var key = reading.value
-          var label = reading.options[reading.selectedIndex].text;
+          const reading = document.getElementById('reading')
+          const key = reading.value
+          const dataLabel = reading.options[reading.selectedIndex].text;
 
-          const data = fulldata.filter(f => f.d >= start && f.d <= end )
-          data.forEach(f => {
-              if (f[key] < minV) minV = f[key]
-              if (f[key] > maxV) maxV = f[key]
-          })
-          
-          const dates = data.map(d => d.ds);
-          const humidities = data.map(d => d[key]);
+          var minV = Number.MAX_SAFE_INTEGER;
+          var maxV = Number.MIN_SAFE_INTEGER;
+
+          const annotations = [];
+          var last = 0;
+          var buildBox = false;
+          function makeBox(a, b) {
+              annotations.push({
+      	          id: 'box' + a,
+                  type: 'box',
+                  xMin: fdata[a].ds,
+                  xMax: fdata[b].ds,
+                  backgroundColor: 'rgba(180, 180, 180, 0.1)',
+                  borderWidth: 0
+              })
+          }
+          for (i = 0; i < fdata.length; i++) {
+              if (fdata[i][key] - 1 < minV) minV = fdata[i][key] - 1;
+              if (fdata[i][key] + 1 > maxV) maxV = fdata[i][key] + 1;
+
+              if (fdata[last].d.getDay() != fdata[i].d.getDay() ) {
+                  if (buildBox) {
+                      makeBox(last, i - 1);
+                  }
+                  last = i;
+                  buildBox = !buildBox;
+              }
+          }
+          if (buildBox) {
+              makeBox(last, fdata.length - 1);
+          }
+
+          const dates = fdata.map(d => d.ds);
+          const data = fdata.map(d => d[key]);
           
           const ctx = document.getElementById('myChart').getContext('2d');
           if (chart != null) {
               chart.destroy();
           }
+          
           chart = new Chart(ctx, {
               type: 'line',
               data: {
                   labels: dates,
                   datasets: [{
-                      label: label,
-                      data: humidities,
+                      label: dataLabel,
+                      data: data,
                       backgroundColor: 'rgba(75, 192, 192, 0.2)',
                       borderColor: 'rgba(75, 192, 192, 1)',
                       borderWidth: 1
@@ -70,8 +94,13 @@
                   responsive: true,
                   scales: {
                       y: {
-                          min: minV - 1,
-                          max: maxV + 1
+                          min: minV,
+                          max: maxV,
+                      }
+                  },
+                  plugins: {
+                      annotation: {
+                          annotations: annotations
                       }
                   }
               }
@@ -103,18 +132,18 @@
               const sd = document.getElementById('startDate');
               const ed = document.getElementById('endDate');
               
-              min = fulldata[0].d
-              max = fulldata.slice(-1)[0].d
+              const minDate = fulldata[0].d
+              const maxDate = fulldata.slice(-1)[0].d
 
-              ed.value = max.toISOString().split('T')[0];
-              ed.min = min.toISOString().split('T')[0];
-              ed.max = max.toISOString().split('T')[0];
+              ed.value = maxDate.toISOString().split('T')[0];
+              ed.min = minDate.toISOString().split('T')[0];
+              ed.max = maxDate.toISOString().split('T')[0];
               
-              sd.value = max.toISOString().split('T')[0];
-              sd.min = min.toISOString().split('T')[0];
-              sd.max = max.toISOString().split('T')[0];
+              sd.value = ed.value;
+              sd.min = ed.min;
+              sd.max = ed.max;
 
-              displayData(subHours(max, 24), max);
+              displayData(new Date(maxDate).setHours(maxDate.getHours() - 24), maxDate);
           }
       }
       xmlhttp.open("GET","weather.json",true);
