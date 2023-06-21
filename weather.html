@@ -18,6 +18,9 @@
       <option value="30">30</option>
       <option value="60">60</option>
     </select>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Min: <input type='text' id='minValue'>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Max: <input type='text' id='maxValue'>
     
     <div>
       <canvas id="myChart"></canvas>
@@ -48,7 +51,9 @@
           const dataLabel = reading.options[reading.selectedIndex].text;
 
           let minV = Number.MAX_SAFE_INTEGER;
+          let minVDate = null;
           let maxV = Number.MIN_SAFE_INTEGER;
+          let maxVDate = null;
 
           const annotations = [];
           let last = 0;
@@ -64,8 +69,8 @@
               });
           }
           for (let i = 0; i < fdata.length; i++) {
-              if (fdata[i][key] - 1 < minV) minV = fdata[i][key] - 1;
-              if (fdata[i][key] + 1 > maxV) maxV = fdata[i][key] + 1;
+              if (fdata[i][key] - 1 < minV) { minV = fdata[i][key] - 1; minVDate = fdata[i].ds; }
+              if (fdata[i][key] + 1 > maxV) { maxV = fdata[i][key] + 1; maxVDate = fdata[i].ds; }
 
               if (fdata[last].d.getDay() != fdata[i].d.getDay() ) {
                   if (buildBox) {
@@ -79,6 +84,9 @@
               makeBox(last, fdata.length - 1);
           }
 
+          document.getElementById('minValue').value = minV + 1 + " @ " + minVDate;
+          document.getElementById('maxValue').value = maxV - 1 + " @ " + maxVDate;
+          
           const dates = fdata.map(d => d.ds);
           const data = fdata.map(d => d[key]);
           
