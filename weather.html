@@ -5,13 +5,13 @@
 
     <input type="date" id="endDate">
 
-    <select id="reading" name="reading">
+    <select id="reading">
       <option value="h" selected>Humidity</option>
       <option value="f">Fahrenheit</option>
       <option value="c">Celcius</option>
     </select>
 
-    <select id="interval" name="interval">
+    <select id="interval">
       <option value="1" selected>1</option>
       <option value="5" >5</option>
       <option value="10">10</option>
@@ -34,7 +34,7 @@
       let fulldata = null;
       let chart = null;
       
-      function format(s) { return s.substring(5, 10) + ' ' +  s.substring(11, 16) }
+      function format(s) { return s.substring(5, 10) + ' ' +  s.substring(11, 16); }
 
       function displayData(startDate, endDate) {
 
@@ -43,8 +43,8 @@
           const fdata = fulldata.filter(f => f.d >= startDate && f.d <= endDate &&
                                         f.d.getMinutes() % interval == 0);
 
-          const reading = document.getElementById('reading')
-          const key = reading.value
+          const reading = document.getElementById('reading');
+          const key = reading.value;
           const dataLabel = reading.options[reading.selectedIndex].text;
 
           let minV = Number.MAX_SAFE_INTEGER;
@@ -61,7 +61,7 @@
                   xMax: fdata[b].ds,
                   backgroundColor: 'rgba(100, 100, 100, 0.2)',
                   borderWidth: 0
-              })
+              });
           }
           for (let i = 0; i < fdata.length; i++) {
               if (fdata[i][key] - 1 < minV) minV = fdata[i][key] - 1;
@@ -136,14 +136,14 @@
                   return {
                       // parse date and add a pretty-printed version
                       d : new Date(dd.d), ds : format(dd.d),
-                      f : dd.f, c : dd.c, h : dd.h }
+                      f : dd.f, c : dd.c, h : dd.h };
               });
               
               const sd = document.getElementById('startDate');
               const ed = document.getElementById('endDate');
               
-              const minDate = fulldata[0].d
-              const maxDate = fulldata.slice(-1)[0].d
+              const minDate = fulldata[0].d;
+              const maxDate = fulldata.slice(-1)[0].d;
 
               ed.value = maxDate.toISOString().split('T')[0];
               ed.min = minDate.toISOString().split('T')[0];
