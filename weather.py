@@ -23,9 +23,9 @@ while True:
     
     now = datetime.now()
 
-    dt_string = now.strftime("%Y-%m-%dT%H:%M:%S.000")
+    dt_string = now.strftime("%Y-%m-%dT%H:%M:%S")
     
-    line = '{{"d":"{0}","f":{1:0.1f},"c":{2:0.1f},"h":{3:0.1f}}}'.format(dt_string, f, temperature, humidity)
+    line = '{{"d":"{0}","f":{1:0.1f},"h":{2:0.1f}}}'.format(dt_string, f, humidity)
 
     print (line)
 
