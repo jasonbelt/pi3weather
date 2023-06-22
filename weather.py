@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys
-import Adafruit_DHT
+import Adafruit_DHT as dht
 import subprocess
 import time
 import os
@@ -17,7 +17,7 @@ def writeOut(line):
     
 while True:
     
-    humidity, temperature = Adafruit_DHT.read_retry(11, 4)
+    humidity, temperature = dht.read_retry(dht.DHT22, 4)
     
     f = (temperature * 9/5) + 32
     
