@@ -164,10 +164,14 @@
           }
       }
       const params = new URLSearchParams(window.location.search);
-      const fname = params.has('loc') ? `weather_${params.get('loc')}.json` : 'weather.json';
+      if (!params.has('loc')) {
+          alert('Must supply filename suffix -- e.g. weather.html?loc=home');
+          throw new Error('bye');
+      }
+      const fname = `weather_${params.get('loc')}.json`;
 
       xmlhttp.open("GET",fname,true);
-      xmlhttp.onloadend = function() { if (xmlhttp.status == 404) alert(`Couldn't load ${fname} - hint: weather.html?loc=office to load weather_office.json`) }
+      xmlhttp.onloadend = function() { if (xmlhttp.status == 404) alert(`Couldn't load ${fname}`) }
       xmlhttp.send();
     </script>
   </body>
