@@ -7,8 +7,12 @@ import os
 
 from datetime import datetime
 
+if (len(sys.argv) != 2):
+    print("Must supply a filename suffix")
+    exit(1)
+
 file_path = os.path.dirname(os.path.realpath(__file__))
-output = f'{file_path}/weather.json'
+output = f'{file_path}/weather_{sys.argv[1]}.json'
 
 def writeOut(line):
     with open(output, 'a') as fmod:

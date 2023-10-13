@@ -163,7 +163,11 @@
               displayData(new Date(maxDate).setHours(maxDate.getHours() - 24), maxDate);
           }
       }
-      xmlhttp.open("GET","weather.json",true);
+      const params = new URLSearchParams(window.location.search);
+      const fname = params.has('loc') ? `weather_${params.get('loc')}.json` : 'weather.json';
+
+      xmlhttp.open("GET",fname,true);
+      xmlhttp.onloadend = function() { if (xmlhttp.status == 404) alert(`Couldn't load ${fname} - hint: weather.html?loc=office to load weather_office.json`) }
       xmlhttp.send();
     </script>
   </body>
